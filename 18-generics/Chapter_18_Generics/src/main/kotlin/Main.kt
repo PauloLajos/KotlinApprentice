@@ -7,8 +7,13 @@ fun <T> List<T>.toBulletedList(): String {
     separator, postfix = "\n")
 }
 
+interface Checkable {
+    fun checkIsOK(): Boolean
+}
+
 // 1
-class Mover<T>(
+//class Mover<T>(
+class Mover<T: Checkable>(
 // 2
     thingsToMove: List<T>,
     val truckHeightInInches: Int = (12 * 12)
@@ -17,6 +22,8 @@ class Mover<T>(
     private var thingsLeftInOldPlace = mutableListOf<T>()
     private var thingsInTruck = mutableListOf<T>()
     private var thingsInNewPlace = mutableListOf<T>()
+
+    private var thingsWhichFailedCheck = mutableListOf<T>()
     // 4
     init {
         thingsLeftInOldPlace.addAll(thingsToMove)
@@ -29,7 +36,7 @@ class Mover<T>(
             println("Moved your $item to the truck!")
         }
     }*/
-    fun moveEverythingToTruck() {
+    /*fun moveEverythingToTruck() {
         while (thingsLeftInOldPlace.count() > 0) {
             val item = thingsLeftInOldPlace.removeAt(0)
             if (item is BreakableThing) {
@@ -44,36 +51,70 @@ class Mover<T>(
                 println("Moved your $item to the truck!")
             }
         }
+    }*/
+    fun moveEverythingToTruck() {
+        while (thingsLeftInOldPlace.count() > 0) {
+            val item = thingsLeftInOldPlace.removeAt(0)
+            if (item.checkIsOK()) {
+                thingsInTruck.add(item)
+                println("Moved your $item to the truck!")
+            } else {
+                thingsWhichFailedCheck.add(item)
+                println("Could not move your $item to the truck :[")
+            }
+        }
     }
     // 6
-    fun moveEverythingIntoNewPlace() {
+    /*fun moveEverythingIntoNewPlace() {
         while (thingsInTruck.count() > 0) {
             val item = thingsInTruck.removeAt(0)
             thingsInNewPlace.add(item)
             println("Moved your $item into your new place!")
         }
+    }*/
+    fun moveEverythingIntoNewPlace() {
+        while (thingsInTruck.count() > 0) {
+            val item = thingsInTruck.removeAt(0)
+            if (item.checkIsOK()) {
+                thingsInNewPlace.add(item)
+                println("Moved your $item into your new place!")
+            } else {
+                thingsWhichFailedCheck.add(item)
+                println("Could not move your $item into your new place :[")
+            }
+        }
     }
     // 7
+    /*fun finishMove() {
+        println("OK, we finished! We were able to move your:${thingsInNewPlace.toBulletedList()}")
+    }*/
     fun finishMove() {
         println("OK, we finished! We were able to move your:${thingsInNewPlace.toBulletedList()}")
+            if (thingsWhichFailedCheck.isNotEmpty()) {
+                println("But we need to talk about your:${thingsWhichFailedCheck.toBulletedList()}")
+            }
     }
 }
 
-class CheapThing(val name: String) {
+class CheapThing(val name: String): Checkable {
     override fun toString(): String {
         return name
     }
+    override fun checkIsOK(): Boolean = true
 }
 
 class BreakableThing(
     val name: String,
     var isBroken: Boolean = false
-) {
+): Checkable {
     fun smash() {
         isBroken = true
     }
     override fun toString(): String {
         return name
+    }
+    override fun checkIsOK(): Boolean {
+        return !isBroken
     }
 }
 
