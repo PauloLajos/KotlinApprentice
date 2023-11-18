@@ -20,7 +20,8 @@ class Mover<T: Checkable>(
 ) {
     // 3
     private var thingsLeftInOldPlace = mutableListOf<T>()
-    private var thingsInTruck = mutableListOf<T>()
+    //private var thingsInTruck = mutableListOf<T>()
+    private var thingsInTruck = mutableListOf<Any>()
     private var thingsInNewPlace = mutableListOf<T>()
 
     private var thingsWhichFailedCheck = mutableListOf<T>()
@@ -52,10 +53,27 @@ class Mover<T: Checkable>(
             }
         }
     }*/
-    fun moveEverythingToTruck() {
+    //fun moveEverythingToTruck() {
+    fun moveEverythingToTruck(startingContainer: Container<T>?) {
+        var currentContainer = startingContainer
         while (thingsLeftInOldPlace.count() > 0) {
             val item = thingsLeftInOldPlace.removeAt(0)
             if (item.checkIsOK()) {
+                // 1
+                if (currentContainer != null) {
+                    // 2
+                    if (!currentContainer.canAddAnotherItem()) {
+                        moveContainerToTruck(currentContainer)
+                        currentContainer = currentContainer.getAnother()
+                    }
+                    // 3
+                    currentContainer.addItem(item)
+                    println("Packed your $item!")
+                } else {
+                    // 4
+                    thingsInTruck.add(item)
+                    println("Moved your $item to the truck!")
+                }
                 thingsInTruck.add(item)
                 println("Moved your $item to the truck!")
             } else {
@@ -63,6 +81,7 @@ class Mover<T: Checkable>(
                 println("Could not move your $item to the truck :[")
             }
         }
+        currentContainer?.let { moveContainerToTruck(it) }
     }
     // 6
     /*fun moveEverythingIntoNewPlace() {
@@ -94,6 +113,11 @@ class Mover<T: Checkable>(
                 println("But we need to talk about your:${thingsWhichFailedCheck.toBulletedList()}")
             }
     }
+
+    private fun moveContainerToTruck(container: Container<T>) {
+        thingsInTruck.add(container)
+        println("Moved a container with your ${container.contents().toBulletedList()} to the truck!")
+    }
 }
 
 class CheapThing(val name: String): Checkable {
@@ -116,6 +140,20 @@ class BreakableThing(
     override fun checkIsOK(): Boolean {
         return !isBroken
     }
+}
+
+// 1
+interface Container<T> {
+    // 2
+    fun canAddAnotherItem(): Boolean
+    fun addItem(item: T)
+    // 3
+    fun canRemoveAnotherItem(): Boolean
+    fun removeItem(): T
+    // 4
+    fun getAnother(): Container<T>
+    // 5
+    fun contents(): List<T>
 }
 
 
