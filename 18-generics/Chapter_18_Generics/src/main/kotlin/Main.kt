@@ -106,8 +106,8 @@ class Mover<T: Checkable>(
     fun moveEverythingIntoNewPlace() {
         while (thingsInTruck.count() > 0) {
             val item = thingsInTruck.removeAt(0)
-            if (item is Container<T>) {
-
+            if (item is Container<*>) {
+                val itemInContainer = item.removeItem()
             }
             if (item.checkIsOK()) {
                 thingsInNewPlace.add(item)
