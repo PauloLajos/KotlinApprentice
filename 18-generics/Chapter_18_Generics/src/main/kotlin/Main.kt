@@ -1,3 +1,6 @@
+/**
+ * Source: https://github.com/PauloLajos/ka-materials
+ */
 
 //fun List<String>.toBulletedList(): String {
 //fun List<Any>.toBulletedList(): String {
@@ -83,6 +86,15 @@ class Mover<T: Checkable>(
         }
         currentContainer?.let { moveContainerToTruck(it) }
     }
+    private fun tryToMoveItemIntoNewPlace(item: T) {
+        if (item.checkIsOK()) {
+            thingsInNewPlace.add(item)
+            println("Moved your $item into your new place!")
+        } else {
+            thingsWhichFailedCheck.add(item)
+            println("Could not move your $item into your new place :[")
+        }
+    }
     // 6
     /*fun moveEverythingIntoNewPlace() {
         while (thingsInTruck.count() > 0) {
@@ -94,6 +106,9 @@ class Mover<T: Checkable>(
     fun moveEverythingIntoNewPlace() {
         while (thingsInTruck.count() > 0) {
             val item = thingsInTruck.removeAt(0)
+            if (item is Container<T>) {
+
+            }
             if (item.checkIsOK()) {
                 thingsInNewPlace.add(item)
                 println("Moved your $item into your new place!")
