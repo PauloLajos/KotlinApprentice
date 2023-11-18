@@ -104,7 +104,19 @@ class Mover<T: Checkable>(
         }
     }*/
     fun moveEverythingIntoNewPlace() {
-        while (thingsInTruck.count() > 0) {
+        //val breakableThings = thingsInTruck.filterIsInstance<BreakableThing>()
+        //val items = thingsInTruck.filterIsInstance<T>()
+        val containers = thingsInTruck.filterIsInstance<Container<T>>()
+        for (container in containers) {
+            thingsInTruck.remove(container)
+            while (container.canRemoveAnotherItem()) {
+                val itemInContainer = container.removeItem()
+                println("Unpacked your $itemInContainer!")
+                tryToMoveItemIntoNewPlace(itemInContainer)
+            }
+        }
+
+        /*while (thingsInTruck.count() > 0) {
             val item = thingsInTruck.removeAt(0)
             if (item is Container<*>) {
                 val itemInContainer = item.removeItem()
@@ -115,6 +127,15 @@ class Mover<T: Checkable>(
             } else {
                 thingsWhichFailedCheck.add(item)
                 println("Could not move your $item into your new place :[")
+            }
+        }*/
+        while (thingsInTruck.count() > 0) {
+            @Suppress("UNCHECKED_CAST")
+            val item = thingsInTruck.removeAt(0) as? T
+            if (item != null) {
+                tryToMoveItemIntoNewPlace(item)
+            } else {
+                println("Something in the truck was not of the expected generic type: $item")
             }
         }
     }
@@ -171,6 +192,43 @@ interface Container<T> {
     fun contents(): List<T>
 }
 
+// 1
+class CardboardBox : Container<BreakableThing> {
+    // 2
+    private var items = mutableListOf<BreakableThing>()
+
+    override fun contents(): List<BreakableThing> {
+        // 3
+        return items.toList()
+    }
+    // 4
+    override fun canAddAnotherItem(): Boolean {
+        return items.count() < 2
+    }
+
+    override fun addItem(item: BreakableThing) {
+        // 5
+        items.add(item)
+    }
+
+    override fun canRemoveAnotherItem(): Boolean {
+        // 6
+        return items.count() > 0
+    }
+
+    override fun removeItem(): BreakableThing {
+        // 7
+        val lastItem = items.last()
+        items.remove(lastItem)
+        return lastItem
+    }
+
+    override fun getAnother(): Container<BreakableThing> {
+        // 8
+        return CardboardBox()
+    }
+}
+
 
 //fun main(args: Array<String>) {
 fun main() {
@@ -210,7 +268,8 @@ fun main() {
         CheapThing("Ugly old couch")
     )
     val cheapMover = Mover(cheapThings)
-    cheapMover.moveEverythingToTruck()
+    //cheapMover.moveEverythingToTruck()
+    cheapMover.moveEverythingToTruck(null)
     cheapMover.moveEverythingIntoNewPlace()
     cheapMover.finishMove()
 
@@ -221,7 +280,8 @@ fun main() {
         BreakableThing("Guitar")
     )
     val expensiveMover = Mover(breakableThings)
-    expensiveMover.moveEverythingToTruck()
+    //expensiveMover.moveEverythingToTruck()
+    expensiveMover.moveEverythingToTruck(CardboardBox())
 
     television.smash()
 
